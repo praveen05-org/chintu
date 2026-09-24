@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recomp Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f4;--card:#fff;--ink:#0f1720;--mute:#5d6875;--line:#dde2e8;--cal:#d9730d;--pro:#0b7f75;--blue:#2447d1;--over:#c62828;--track:#e3e8ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1218;--card:#161d26;--ink:#e9eef3;--mute:#8f9bab;--line:#263140;--cal:#f0913a;--pro:#3cc4b7;--blue:#7d97ff;--over:#ff6b6b;--track:#232d3a}}
+:root[data-theme="dark"]{--bg:#0d1218;--card:#161d26;--ink:#e9eef3;--mute:#8f9bab;--line:#263140;--cal:#f0913a;--pro:#3cc4b7;--blue:#7d97ff;--over:#ff6b6b;--track:#232d3a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 40px}
+h1,h2,.num{font-family:"Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.2px}
+h1{font-size:28px;margin:0 0 10px}
+h2{font-size:22px;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.nav{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.nav b{flex:1;text-align:center;font-weight:600}
+button{font:inherit;color:inherit;cursor:pointer}
+.ib{border:1px solid var(--line);background:var(--card);border-radius:10px;width:40px;height:40px;font-size:20px}
+.pill{border:1px solid var(--line);background:var(--card);border-radius:10px;height:40px;padding:0 12px}
+.big{font-size:76px;line-height:.95;font-weight:700;color:var(--cal)}
+.big.over{color:var(--over)}
+.sub{color:var(--mute);margin:4px 0 12px}
+.row2{display:flex;justify-content:space-between;margin:14px 0 6px}
+.bar{height:10px;background:var(--track);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px;transition:width .3s}
+.bar .cal{background:var(--cal)}.bar .pro{background:var(--pro)}.bar .over{background:var(--over)}
+.add{display:grid;grid-template-columns:1fr 84px 84px;gap:8px;margin-top:12px}
+input[type=text],input[type=number]{width:100%;height:42px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:var(--bg);color:var(--ink);font:inherit}
+input:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.go{grid-column:1/-1;height:44px;border:0;border-radius:10px;background:var(--blue);color:#fff;font-weight:600}
+#err{color:var(--over);font-size:14px;min-height:0}
+.item{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .g{flex:1}
+.item small{color:var(--mute)}
+.x{border:0;background:none;color:var(--mute);font-size:20px;width:32px;height:32px}
+.empty{color:var(--mute);margin:10px 0 0}
+.head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.head span{color:var(--mute)}
+label.g{display:flex;align-items:center;gap:12px;cursor:pointer;flex:1;min-height:32px}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--blue);flex:none}
+.done{color:var(--mute);text-decoration:line-through}
+.newg{display:flex;gap:8px;margin-top:10px}
+.newg button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 14px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.week button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:6px 0 4px;text-align:center}
+.week button.sel{border-color:var(--blue)}
+.col{height:44px;width:14px;margin:0 auto 4px;background:var(--track);border-radius:4px;display:flex;align-items:flex-end;overflow:hidden}
+.col i{display:block;width:100%;background:var(--blue)}
+.week small{color:var(--mute)}
+details summary{cursor:pointer;font-weight:600}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.tg label{font-size:14px;color:var(--mute)}
+.tip{color:var(--mute);font-size:14px;margin:10px 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Recomp tracker</h1>
+  <div class="nav">
+    <button class="ib" onclick="shift(-1)" aria-label="Previous day">&lsaquo;</button>
+    <b id="dt"></b>
+    <button class="ib" onclick="shift(1)" aria-label="Next day">&rsaquo;</button>
+    <button class="pill" onclick="goTo(iso(new Date()))">Today</button>
+  </div>
+
+  <div class="card" id="hero"></div>
+
+  <div class="card">
+    <h2>Log food</h2>
+    <div class="add">
+      <input type="text" id="fn" placeholder="Food (e.g. 3 eggs, rice)" aria-label="Food name">
+      <input type="number" id="fk" inputmode="decimal" placeholder="kcal" aria-label="Calories">
+      <input type="number" id="fp" inputmode="decimal" placeholder="protein g" aria-label="Protein in grams">
+      <button class="go" onclick="addMeal()">Add food</button>
+    </div>
+    <div id="err" role="alert"></div>
+    <div id="meals"></div>
+  </div>
+
+  <div class="card">
+    <div class="head"><h2>Today's goals</h2><span id="gc"></span></div>
+    <div id="goals"></div>
+    <div class="newg">
+      <input type="text" id="ng" placeholder="Add your own goal" aria-label="New goal">
+      <button onclick="addGoal()">Add goal</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Last 7 days</h2>
+    <div class="week" id="week"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>Daily targets</summary>
+      <div class="tg">
+        <div><label for="tk">Calories (kcal)</label><input type="number" id="tk" inputmode="decimal" onchange="setT()"></div>
+        <div><label for="tp">Protein (g)</label><input type="number" id="tp" inputmode="decimal" onchange="setT()"></div>
+      </div>
+      <p class="tip">Recomp usually works best near maintenance calories, high protein (about 1.6 to 2.2 g per kg body weight), and regular strength training. Set numbers that fit you.</p>
+    </details>
+  </div>
+</div>
+
+<script>
+var KEY='recomp-tracker-v1';
+var DEF={t:{kcal:2200,pro:150},goals:[
+ {id:'g1',x:'Stay within calorie target'},{id:'g2',x:'Hit protein target'},
+ {id:'g3',x:'Strength training done'},{id:'g4',x:'8,000+ steps'},
+ {id:'g5',x:'Drink 3 L water'},{id:'g6',x:'Sleep 7+ hours'}],days:{}};
+var S=null;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.goals||!S.t)S=JSON.parse(JSON.stringify(DEF));
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function $(i){return document.getElementById(i)}
+function iso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+var cur=new Date();cur.setHours(12,0,0,0);
+function key(){return iso(cur)}
+function day(k){return S.days[k]||(S.days[k]={m:[],d:{}})}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function fmt(n){return Math.round(n).toLocaleString('en-IN')}
+function shift(n){cur.setDate(cur.getDate()+n);render()}
+function goTo(k){var p=k.split('-');cur=new Date(+p[0],+p[1]-1,+p[2],12);render()}
+function bar(f,c){return '<div class="bar"><i class="'+c+'" style="width:'+Math.min(100,Math.max(0,f*100))+'%"></i></div>'}
+function totals(k){var m=(S.days[k]||{m:[]}).m||[],c=0,p=0;m.forEach(function(x){c+=x.k;p+=x.p});return{c:c,p:p}}
+function pct(k){var d=(S.days[k]||{}).d||{},n=0;if(!S.goals.length)return 0;S.goals.forEach(function(g){if(d[g.id])n++});return n/S.goals.length}
+
+function addMeal(){
+  var n=$('fn').value.trim(),k=parseFloat($('fk').value),p=parseFloat($('fp').value)||0;
+  if(!n||isNaN(k)||k<0){$('err').textContent='Enter a food name and its calories.';return}
+  $('err').textContent='';
+  day(key()).m.push({n:n,k:k,p:p});save();
+  $('fn').value='';$('fk').value='';$('fp').value='';render();$('fn').focus();
+}
+function delMeal(i){day(key()).m.splice(i,1);save();render()}
+function tick(id){var d=day(key()).d;d[id]=!d[id];save();render()}
+function addGoal(){var v=$('ng').value.trim();if(!v)return;S.goals.push({id:'g'+Date.now(),x:v});$('ng').value='';save();render()}
+function delGoal(id){S.goals=S.goals.filter(function(g){return g.id!==id});save();render()}
+function setT(){var k=parseFloat($('tk').value),p=parseFloat($('tp').value);if(k>0)S.t.kcal=k;if(p>0)S.t.pro=p;save();render()}
+
+function render(){
+  var k=key(),t=totals(k),T=S.t,today=iso(new Date());
+  var lbl=k===today?'Today':cur.toLocaleDateString('en-IN',{weekday:'long'});
+  $('dt').textContent=lbl+', '+cur.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  var left=T.kcal-t.c,over=left<0;
+  $('hero').innerHTML='<div class="big num'+(over?' over':'')+'">'+fmt(Math.abs(left))+'</div>'
+   +'<div class="sub">kcal '+(over?'over your target':'left')+'. Eaten '+fmt(t.c)+' of '+fmt(T.kcal)+'.</div>'
+   +bar(t.c/T.kcal,over?'over':'cal')
+   +'<div class="row2"><span>Protein</span><span><b>'+fmt(t.p)+'</b> of '+fmt(T.pro)+' g</span></div>'
+   +bar(t.p/T.pro,'pro');
+
+  var m=day(k).m;
+  $('meals').innerHTML=m.length?m.map(function(x,i){
+    return '<div class="item"><div class="g">'+esc(x.n)+'<br><small>'+fmt(x.k)+' kcal, '+fmt(x.p)+' g protein</small></div><button class="x" onclick="delMeal('+i+')" aria-label="Remove '+esc(x.n)+'">&times;</button></div>'
+  }).join(''):'<p class="empty">No food logged for this day. Add your first meal above.</p>';
+
+  var d=day(k).d,n=0;
+  $('goals').innerHTML=S.goals.length?S.goals.map(function(g){
+    if(d[g.id])n++;
+    return '<div class="item"><label class="g"><input type="checkbox" '+(d[g.id]?'checked ':'')+'onchange="tick(\''+g.id+'\')"><span class="'+(d[g.id]?'done':'')+'">'+esc(g.x)+'</span></label><button class="x" onclick="delGoal(\''+g.id+'\')" aria-label="Remove goal">&times;</button></div>'
+  }).join(''):'<p class="empty">No goals yet. Add one below.</p>';
+  $('gc').textContent=S.goals.length&&n===S.goals.length?'All goals done':n+' of '+S.goals.length+' done';
+
+  var w='',i,dd,kk;
+  for(i=6;i>=0;i--){
+    dd=new Date();dd.setDate(dd.getDate()-i);kk=iso(dd);
+    w+='<button class="'+(kk===k?'sel':'')+'" onclick="goTo(\''+kk+'\')" aria-label="'+dd.toDateString()+', '+Math.round(pct(kk)*100)+'% of goals done"><div class="col"><i style="height:'+Math.round(pct(kk)*100)+'%"></i></div><small>'+dd.toLocaleDateString('en-IN',{weekday:'short'})+'</small></button>';
+  }
+  $('week').innerHTML=w;
+  $('tk').value=T.kcal;$('tp').value=T.pro;
+}
+['fn','fk','fp'].forEach(function(i){$(i).addEventListener('keydown',function(e){if(e.key==='Enter')addMeal()})});
+$('ng').addEventListener('keydown',function(e){if(e.key==='Enter')addGoal()});
+render();
+</script>
+</body>
+</html>
